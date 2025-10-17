@@ -1,6 +1,7 @@
 package com.example.receipto
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -22,8 +23,12 @@ import com.example.receipto.ui.theme.ReceiptoTheme
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        Log.d("MainActivity", "MainActivity started")
+
         setContent {
             ReceiptoTheme {
                 AppNavHost()
@@ -85,7 +90,6 @@ fun AppNavHost() {
                     },
                     actions = {
                         IconButton(onClick = {
-                            // TODO: Navigate to profile screen
                             navController.navigate("profile")
                         }) {
                             Icon(
@@ -130,7 +134,6 @@ fun DrawerContent(
                 .fillMaxSize()
                 .padding(vertical = 16.dp)
         ) {
-            // Drawer Header
             Column(
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 20.dp)
             ) {
@@ -155,7 +158,6 @@ fun DrawerContent(
 
             Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-            // Menu Items
             DrawerMenuItem(
                 icon = Icons.Default.Home,
                 label = "Home",
@@ -196,10 +198,9 @@ fun DrawerContent(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Footer
             Text(
                 text = "Version 1.0 • Offline Mode",
-                        style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
             )

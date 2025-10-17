@@ -3,15 +3,18 @@ package com.example.receipto.ocr
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
+import android.util.Log
 import com.example.receipto.util.ImageUtils
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.Text
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import kotlinx.coroutines.tasks.await
+import kotlin.text.lines
 
 /**
  * Processes images to extract text using ML Kit's on-device OCR
+ * Now with OpenCV preprocessing and layout detection!
  * This runs completely offline - no internet needed!
  */
 class OcrProcessor(private val context: Context) {
@@ -20,7 +23,7 @@ class OcrProcessor(private val context: Context) {
 
     /**
      * Extract text from an image URI
-     * Returns OcrResult with extracted text and confidence
+     * Returns OcrResult with extracted text, confidence, and detected regions
      */
     suspend fun processImage(imageUri: Uri): OcrResult {
         return try {
@@ -40,17 +43,61 @@ class OcrProcessor(private val context: Context) {
     }
 
     /**
-     * Extract text from a Bitmap
+     * Extract text from a Bitmap with OpenCV preprocessing
      */
     suspend fun processImage(bitmap: Bitmap): OcrResult {
         return try {
-            val inputImage = InputImage.fromBitmap(bitmap, 0)
-            val visionText = textRecognizer.process(inputImage).await()
+            Log.d("OcrProcessor", "Starting OCR processing with OpenCV pipeline")
+
+            // Process ORIGINAL image (without OpenCV)
+            val originalInputImage = InputImage.fromBitmap(bitmap
+
+                , 0)
+            val originalVisionText = textRecognizer.process(originalInputImage).await()
+            Log.d("OcrProcessor", "ORIGINAL OCR detected ${originalVisionText.text.length} characters")
+
+            // Process with OpenCV preprocessing
+            val preprocessedBitmap = try {
+                ImagePreprocessor.preprocess(bitmap)
+            } catch (e: Exception) {
+                Log.e("OcrProcessor", "OpenCV preprocessing failed", e)
+                bitmap
+            }
+
+            val preprocessedInputImage = InputImage.fromBitmap(preprocessedBitmap, 0)
+            val preprocessedVisionText = textRecognizer.process(preprocessedInputImage).await()
+            Log.d("OcrProcessor", "PREPROCESSED OCR detected ${preprocessedVisionText.text.length} characters")
+
+            // Detect layout regions
+            val detectedRegions = try {
+                LayoutDetector.detectRegions(preprocessedBitmap)
+            } catch (e: Exception) {
+                Log.e("OcrProcessor", "Layout detection failed", e)
+                emptyList()
+            }
+
+            val classifiedRegions = try {
+                RegionClassifier.classify(detectedRegions)
+            } catch (e: Exception) {
+                Log.e("Ocr Processor", "Region classification failed", e)
+                        emptyList()
+            }
+
+            Log.d("OcrProcessor", "Detected ${classifiedRegions.size} regions")
+
+            // USE THE BETTER RESULT (more characters detected)
+            val visionText = if (originalVisionText.text.length > preprocessedVisionText.text.length) {
+                Log.d("OcrProcessor", "Using ORIGINAL (better)")
+                originalVisionText
+            } else {
+                Log.d("OcrProcessor", "Using PREPROCESSED (better)")
+                preprocessedVisionText
+            }
 
             if (visionText.text.isEmpty()) {
                 OcrResult.Error("No text detected in image")
             } else {
-                parseVisionText(visionText)
+                parseVisionTextWithRegions(visionText, classifiedRegions)
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -59,14 +106,16 @@ class OcrProcessor(private val context: Context) {
     }
 
     /**
-     * Parse ML Kit's Text result into our structured format
+     * Parse ML Kit's Text result into our structured format with region information
      */
-    private fun parseVisionText(visionText: Text): OcrResult {
+    private fun parseVisionTextWithRegions(
+        visionText: Text,
+        regions: List<ClassifiedRegion>
+    ): OcrResult {
         val fullText = visionText.text
         val lines = mutableListOf<TextLine>()
         val words = mutableListOf<String>()
 
-        // Extract text blocks, lines, and elements
         for (block in visionText.textBlocks) {
             for (line in block.lines) {
                 val lineText = line.text
@@ -80,7 +129,6 @@ class OcrProcessor(private val context: Context) {
                     )
                 )
 
-                // Extract individual words/elements
                 for (element in line.elements) {
                     words.add(element.text)
                 }
@@ -91,8 +139,17 @@ class OcrProcessor(private val context: Context) {
             fullText = fullText,
             lines = lines,
             words = words,
-            blockCount = visionText.textBlocks.size
+            blockCount = visionText.textBlocks.size,
+            detectedRegions = regions
         )
+    }
+
+
+    /**
+     * Parse ML Kit's Text result into our structured format (legacy method without regions)
+     */
+    private fun parseVisionText(visionText: Text): OcrResult {
+        return parseVisionTextWithRegions(visionText, emptyList())
     }
 
     /**
@@ -111,7 +168,8 @@ sealed class OcrResult {
         val fullText: String,
         val lines: List<TextLine>,
         val words: List<String>,
-        val blockCount: Int
+        val blockCount: Int,
+        val detectedRegions: List<ClassifiedRegion> = emptyList()  // NEW: Layout regions
     ) : OcrResult() {
 
         val lineCount: Int get() = lines.size
@@ -119,6 +177,15 @@ sealed class OcrResult {
         val avgConfidence: Float get() =
             if (lines.isEmpty()) 0f
             else lines.map { it.confidence }.average().toFloat()
+
+        // NEW: Helper methods for region-based parsing
+        fun getTextInRegion(regionType: RegionType): String {
+            return detectedRegions
+                .filter { it.type == regionType }
+                .joinToString("\n") { it.text }
+        }
+
+        fun hasRegions(): Boolean = detectedRegions.isNotEmpty()
     }
 
     data class Error(val message: String) : OcrResult()
