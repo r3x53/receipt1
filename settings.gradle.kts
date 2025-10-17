@@ -21,3 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Receipto - Smol Smart Receipt Reader"
 include(":app")
+include(":sdk")

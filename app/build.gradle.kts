@@ -56,69 +56,74 @@ android {
     }
 }
 
-dependencies {
-    // Core Android
+dependencies{
+// Core Android
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     implementation("androidx.activity:activity-compose:1.9.0")
 
-    // Compose BOM
+// Compose BOM
     implementation(platform("androidx.compose:compose-bom:2024.02.00"))
 
-    // Compose UI
+// Compose UI
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
 
-    // Compose Material 3
+// Compose Material 3
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
 
-    // Navigation Compose
+// Navigation Compose
     implementation("androidx.navigation:navigation-compose:2.7.6")
 
-    // ViewModel for Compose
+// ViewModel for Compose
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
 
-    // Room Database
+// Room Database
     val roomVersion = "2.6.1"
     implementation("androidx.room:room-runtime:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
     ksp("androidx.room:room-compiler:$roomVersion")
 
-    // CameraX for camera functionality
+// CameraX for camera functionality
     val cameraxVersion = "1.3.1"
     implementation("androidx.camera:camera-camera2:$cameraxVersion")
     implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
     implementation("androidx.camera:camera-view:$cameraxVersion")
 
-    // ML Kit Text Recognition - OCR (Offline)
+// ML Kit Text Recognition - OCR (Offline)
     implementation("com.google.mlkit:text-recognition:16.0.0")
 
-    // ML Kit Barcode Scanning (Offline)
+// ML Kit Barcode Scanning (Offline)
     implementation("com.google.mlkit:barcode-scanning:17.2.0")
 
-    // Coil for image loading
+
+    // OpenCV as module
+    //implementation(project(":opencv"))
+    implementation(project(":sdk"))
+
+// Coil for image loading
     implementation("io.coil-kt:coil-compose:2.5.0")
 
-    // ExifInterface for image orientation
+// ExifInterface for image orientation
     implementation("androidx.exifinterface:exifinterface:1.3.7")
 
-    // Coroutines
+// Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
-    // Play Services Tasks for Kotlin Coroutines (ADD THIS if missing)
+// Play Services Tasks for Kotlin Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 
-    // Testing
+// Testing
     testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.6")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.2")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation(platform("androidx.compose:compose-bom:2024.02.00"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
 
-    // Debug
+// Debug
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
