@@ -102,7 +102,10 @@ dependencies{
 
     // OpenCV as module
     //implementation(project(":opencv"))
-    implementation(project(":sdk"))
+    implementation(project(":sdk"))  //https://proandroiddev.com/android-studio-step-by-step-guide-to-download-and-install-opencv-for-android-9ddcb78a8bc3
+                                    // ^ helped a lot
+
+
 
 // Coil for image loading
     implementation("io.coil-kt:coil-compose:2.5.0")
