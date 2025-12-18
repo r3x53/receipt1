@@ -1,0 +1,6 @@
+line_text,label,receipt_source,notes
+"EL COBERTIZO",TEXT_LINE,receipt_001,
+"2,80 30,80",PRICE_LINE,receipt_001,Multiple price-like numbers on one line
+"TOTAL 910,60",PRICE_LINE,receipt_001,Grand total
+"TEL 555-0199",TEXT_LINE,receipt_001,Phone number (not a price)
+"2025-12-18 20:15",TEXT_LINE,receipt_001,Date/time (not a price)
