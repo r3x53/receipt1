@@ -643,6 +643,29 @@ fun RawOcrView(ocrResult: OcrResult?, isProcessing: Boolean) {
                                 StatItem("Confidence", "${(ocrResult.avgConfidence * 100).toInt()}%")
                             }
                             Divider(modifier = Modifier.padding(vertical = 16.dp))
+
+                            val context = LocalContext.current
+                            Button(
+                                onClick = {
+                                    val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+                                    val filename = "ocr_export_$timestamp.txt"
+                                    val file = File(context.cacheDir, filename)
+                                    val content = ocrResult.lines.joinToString("\n") { it.text }
+                                    try {
+                                        file.writeText(content)
+                                        android.widget.Toast.makeText(context, "Exported to ${file.absolutePath}", android.widget.Toast.LENGTH_LONG).show()
+                                    } catch (e: Exception) {
+                                        android.widget.Toast.makeText(context, "Export failed: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+                                        e.printStackTrace()
+                                    }
+                                },
+                                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                            ) {
+                                Icon(Icons.Default.Save, contentDescription = null)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Debug Export Lines")
+                            }
+
                             Surface(
                                 modifier = Modifier.fillMaxWidth(),
                                 color = MaterialTheme.colorScheme.surface,
